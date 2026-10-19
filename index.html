@@ -15,7 +15,7 @@
   <!-- Google Fonts: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -40,38 +40,24 @@
     }
   </script>
 
-  <!-- Client-Side Document Parsing Engines -->
-  <!-- 1. PDF.js for PDF extraction -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- Local Same-Origin Document Parsers (Zero CORS / Zero Network Failure) -->
+  <script src="pdf.min.js"></script>
   <script>
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    if (typeof pdfjsLib !== 'undefined') {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdf.worker.min.js';
+    }
   </script>
-
-  <!-- 2. Mammoth.js for Word (.docx) -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
-
-  <!-- 3. SheetJS for Excel (.xlsx, .xls, .csv) -->
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
-  <!-- 4. Turndown.js for HTML to Markdown conversion -->
-  <script src="https://unpkg.com/turndown/dist/turndown.js"></script>
-  <script src="https://unpkg.com/turndown-plugin-gfm/dist/turndown-plugin-gfm.js"></script>
-
-  <!-- 5. Marked.js, DOMPurify, Highlight.js for rendering -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.11/purify.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="mammoth.browser.min.js"></script>
+  <script src="xlsx.full.min.js"></script>
+  <script src="turndown.js"></script>
+  <script src="marked.min.js"></script>
+  <script src="purify.min.js"></script>
 
   <style>
-    /* Custom Scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 9999px; }
 
-    /* Markdown Document Typography */
     .prose-studio h1 {
       font-size: 1.65rem;
       font-weight: 800;
@@ -171,57 +157,38 @@
 </head>
 <body class="bg-obsidian text-zinc-100 h-[100dvh] flex flex-col font-sans antialiased selection:bg-sky-500/30 selection:text-sky-200 overflow-hidden">
 
-  <!-- Desktop Full-Window Drag & Drop Overlay -->
+  <!-- Desktop Drag & Drop Overlay -->
   <div id="fullWindowDropOverlay" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-2xl border-4 border-dashed border-sky-400 m-4 sm:m-8 rounded-3xl flex flex-col items-center justify-center space-y-4 pointer-events-none transition-all">
-    <div class="w-16 h-16 sm:w-24 sm:h-24 rounded-3xl bg-sky-500/10 border border-sky-500/30 text-sky-400 flex items-center justify-center shadow-2xl shadow-sky-500/20">
-      <i data-lucide="upload-cloud" class="w-8 h-8 sm:w-12 sm:h-12"></i>
-    </div>
     <div class="text-center px-4">
-      <h2 class="text-xl sm:text-3xl font-extrabold text-white tracking-tight">Drop your files here</h2>
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Drop your files here</h2>
       <p class="text-xs sm:text-base text-zinc-400 mt-1">Instant conversion in your browser</p>
     </div>
   </div>
 
-  <!-- Adaptive Navigation Bar -->
+  <!-- Adaptive Navigation Bar (Clean Typography - Zero Empty Placeholder Boxes) -->
   <header class="w-full border-b border-subtle bg-obsidian/95 backdrop-blur-xl shrink-0 h-14 sm:h-16 px-4 sm:px-8 flex items-center justify-between z-30">
-    <div class="flex items-center space-x-3">
-      <div class="flex items-center space-x-2.5 cursor-pointer" onclick="resetToHome()">
-        <div class="w-8 h-8 rounded-xl bg-white text-black font-extrabold flex items-center justify-center text-sm shadow-md shrink-0">
-          M
-        </div>
-        <div class="flex items-center space-x-2">
-          <span class="font-bold text-base sm:text-lg tracking-tight text-white">MarkItDown</span>
-          <span class="text-[10px] sm:text-xs font-mono px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-subtle hidden sm:inline-block">Studio</span>
-        </div>
-      </div>
+    <div class="cursor-pointer select-none" onclick="resetToHome()">
+      <span class="font-bold text-lg sm:text-xl tracking-tight text-white hover:text-zinc-200 transition">MarkItDown</span>
     </div>
 
     <!-- Right Controls -->
     <div class="flex items-center space-x-2">
-      <span class="text-[11px] font-mono px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center space-x-1.5">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span>Client-Side Engine</span>
-      </span>
-      <button onclick="document.getElementById('fileInput').click()" class="h-9 px-3.5 rounded-xl bg-white text-black text-xs font-bold transition flex items-center space-x-1.5 shadow">
-        <i data-lucide="plus" class="w-4 h-4"></i>
+      <button onclick="document.getElementById('fileInput').click()" class="h-9 px-4 rounded-xl bg-white text-black text-xs font-bold transition flex items-center space-x-1.5 shadow active:bg-zinc-200">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
         <span>Upload</span>
       </button>
     </div>
   </header>
 
   <!-- Hidden Native File Input -->
-  <input type="file" id="fileInput" multiple class="hidden" accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.json,.html,.htm,.txt,.md,.xml">
+  <input type="file" id="fileInput" class="hidden" accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.json,.html,.htm,.txt,.md,.xml">
 
 
   <!-- ================= STATE 1: HERO HOME VIEW ================= -->
   <div id="heroDropContainer" class="flex-1 flex flex-col p-4 sm:p-8 lg:p-12 overflow-y-auto">
     
     <!-- DESKTOP EXPANSIVE DROPZONE -->
-    <div class="hidden md:flex flex-1 w-full border-2 border-dashed border-zinc-800 hover:border-sky-500/80 bg-surface/40 hover:bg-surface/80 rounded-3xl p-12 transition-all duration-300 cursor-pointer shadow-2xl flex-col items-center justify-center text-center space-y-5 group" onclick="document.getElementById('fileInput').click()">
-      <div class="w-20 h-20 rounded-3xl bg-zinc-900 group-hover:bg-sky-500/10 group-hover:text-sky-400 text-zinc-400 flex items-center justify-center transition-all duration-300 border border-subtle shadow-inner">
-        <i data-lucide="upload-cloud" class="w-10 h-10"></i>
-      </div>
-
+    <div class="hidden md:flex flex-1 w-full border-2 border-dashed border-zinc-800 hover:border-sky-500/80 bg-surface/40 hover:bg-surface/80 rounded-3xl p-12 transition-all duration-300 cursor-pointer shadow-2xl flex-col items-center justify-center text-center space-y-6" onclick="document.getElementById('fileInput').click()">
       <div class="space-y-2 max-w-xl px-2">
         <h1 class="text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
           Convert any document to Markdown
@@ -233,7 +200,7 @@
 
       <div class="pt-2 px-4">
         <button class="h-14 px-10 py-3.5 rounded-2xl bg-white hover:bg-zinc-200 text-black font-bold text-base transition shadow-2xl flex items-center justify-center space-x-2.5 mx-auto">
-          <i data-lucide="plus" class="w-5 h-5"></i>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
           <span>Choose Files From Device</span>
         </button>
       </div>
@@ -248,24 +215,21 @@
       </div>
     </div>
 
-    <!-- MOBILE NATIVE SCREEN (Galaxy S24 Ultra & Phones) -->
+    <!-- MOBILE NATIVE SCREEN (Galaxy S24 Ultra) -->
     <div class="md:hidden flex-1 flex flex-col justify-between py-2 space-y-6">
       <div class="space-y-1">
         <h1 class="text-2xl font-black text-white tracking-tight">Convert to Markdown</h1>
-        <p class="text-xs text-zinc-400">100% offline & client-side on your Galaxy S24 Ultra.</p>
+        <p class="text-xs text-zinc-400">Runs 100% in your browser on your S24 Ultra.</p>
       </div>
 
       <!-- Action Card -->
-      <div onclick="document.getElementById('fileInput').click()" class="bg-surface border border-zinc-800 hover:border-zinc-700 active:bg-zinc-900 rounded-3xl p-6 shadow-xl transition cursor-pointer flex items-center space-x-4">
-        <div class="w-14 h-14 rounded-2xl bg-sky-500/10 text-sky-400 flex items-center justify-center shrink-0 border border-sky-500/20">
-          <i data-lucide="file-up" class="w-7 h-7"></i>
-        </div>
-        <div class="flex-1 min-w-0">
+      <div onclick="document.getElementById('fileInput').click()" class="bg-surface border border-zinc-800 hover:border-zinc-700 active:bg-zinc-900 rounded-3xl p-6 shadow-xl transition cursor-pointer flex items-center justify-between">
+        <div class="min-w-0 pr-3">
           <h3 class="text-base font-bold text-white">Choose Document</h3>
           <p class="text-xs text-zinc-400 truncate mt-0.5">PDF, Word (.docx), Excel (.xlsx), CSV, Text</p>
         </div>
-        <div class="w-9 h-9 rounded-full bg-zinc-900 border border-subtle flex items-center justify-center text-zinc-400 shrink-0">
-          <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        <div class="w-10 h-10 rounded-2xl bg-white text-black flex items-center justify-center shrink-0 font-bold shadow">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
         </div>
       </div>
 
@@ -294,13 +258,13 @@
       <!-- MOBILE STUDIO TOP BAR (md:hidden) -->
       <div class="md:hidden px-3.5 py-2.5 border-b border-subtle bg-surface/95 backdrop-blur-md flex items-center justify-between shrink-0 z-20">
         <button onclick="resetToHome()" class="h-8 px-2.5 rounded-lg bg-zinc-900 border border-subtle text-xs text-zinc-300 active:text-white flex items-center space-x-1 shrink-0">
-          <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
           <span>New</span>
         </button>
 
         <div class="flex items-center space-x-2 truncate px-2 min-w-0">
           <span id="mobileFormatBadge" class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 shrink-0">DOC</span>
-          <span id="mobileDocTitle" class="text-xs font-bold text-white truncate">document.docx</span>
+          <span id="mobileDocTitle" class="text-xs font-bold text-white truncate">document.pdf</span>
         </div>
 
         <div class="bg-zinc-950 p-0.5 rounded-lg border border-subtle flex items-center">
@@ -318,7 +282,7 @@
         <div class="flex items-center space-x-2.5 truncate max-w-md">
           <span id="activeFormatBadge" class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 shrink-0">DOC</span>
           <div class="truncate">
-            <h2 id="activeDocTitle" class="text-base font-bold text-white truncate">document.docx</h2>
+            <h2 id="activeDocTitle" class="text-base font-bold text-white truncate">document.pdf</h2>
             <div class="flex items-center space-x-2 text-xs font-mono text-zinc-400">
               <span>Words: <strong id="metricWords" class="text-white">0</strong></span>
               <span>•</span>
@@ -340,12 +304,12 @@
           </div>
 
           <button id="desktopCopyBtn" onclick="copyActiveMarkdown()" class="h-9 px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white font-semibold text-xs border border-subtle transition flex items-center space-x-1.5">
-            <i data-lucide="copy" class="w-3.5 h-3.5 text-sky-400"></i>
+            <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
             <span id="desktopCopyText">Copy</span>
           </button>
 
           <button onclick="downloadActiveMarkdown()" class="h-9 px-4 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs transition flex items-center space-x-1.5 shadow-md">
-            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             <span>Export</span>
           </button>
         </div>
@@ -353,6 +317,12 @@
 
       <!-- MAIN DOCUMENT VIEWPORT -->
       <div id="documentViewport" class="flex-1 overflow-y-auto p-4 sm:p-8 lg:p-12 pb-28 sm:pb-16 w-full">
+        <!-- Live Status Display during parsing -->
+        <div id="conversionStatusBox" class="hidden py-16 text-center space-y-3">
+          <div class="w-8 h-8 mx-auto border-2 border-sky-400 border-t-transparent rounded-full animate-spin"></div>
+          <p id="conversionStatusText" class="text-sm font-mono text-zinc-300">Reading file...</p>
+        </div>
+
         <!-- View 1: Rendered HTML -->
         <div id="contentPreview" class="prose-studio w-full max-w-5xl mx-auto"></div>
 
@@ -366,15 +336,15 @@
       <div class="md:hidden fixed bottom-0 left-0 right-0 z-30 p-3 bg-obsidian/95 backdrop-blur-2xl border-t border-subtle pb-[max(12px,env(safe-area-inset-bottom))]">
         <div class="grid grid-cols-3 gap-2">
           <button onclick="copyActiveMarkdown()" class="h-12 rounded-2xl bg-zinc-900 border border-subtle text-white font-semibold text-xs flex flex-col items-center justify-center space-y-0.5 active:bg-zinc-800">
-            <i data-lucide="copy" class="w-4 h-4 text-sky-400"></i>
+            <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
             <span id="mobileDockCopyText">Copy</span>
           </button>
           <button onclick="shareActiveMarkdown()" class="h-12 rounded-2xl bg-zinc-900 border border-subtle text-white font-semibold text-xs flex flex-col items-center justify-center space-y-0.5 active:bg-zinc-800">
-            <i data-lucide="share-2" class="w-4 h-4 text-indigo-400"></i>
+            <svg class="w-4 h-4 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
             <span>Share</span>
           </button>
           <button onclick="downloadActiveMarkdown()" class="h-12 rounded-2xl bg-white text-black font-bold text-xs flex flex-col items-center justify-center space-y-0.5 active:bg-zinc-200 shadow-lg">
-            <i data-lucide="download" class="w-4 h-4"></i>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
             <span>Export .md</span>
           </button>
         </div>
@@ -386,20 +356,17 @@
 
   <!-- Toast Notification -->
   <div id="toastNotification" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 transform -translate-y-12 opacity-0 transition-all duration-300 bg-zinc-900 border border-white/10 text-white px-5 py-2.5 rounded-2xl shadow-2xl flex items-center space-x-2 text-xs font-medium">
-    <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
     <span id="toastMessage">Done</span>
   </div>
 
   <script>
-    lucide.createIcons();
-
     // Turndown for HTML to Markdown
-    const turndownService = new TurndownService({
-      headingStyle: 'atx',
-      codeBlockStyle: 'fenced'
-    });
-    if (typeof turndownPluginGfm !== 'undefined') {
-      turndownService.use(turndownPluginGfm.gfm);
+    let turndownService = null;
+    if (typeof TurndownService !== 'undefined') {
+      turndownService = new TurndownService({
+        headingStyle: 'atx',
+        codeBlockStyle: 'fenced'
+      });
     }
 
     // App State
@@ -412,6 +379,9 @@
     const studioWorkspace = document.getElementById('studioWorkspace');
     const fullWindowDropOverlay = document.getElementById('fullWindowDropOverlay');
     const fileInput = document.getElementById('fileInput');
+
+    const conversionStatusBox = document.getElementById('conversionStatusBox');
+    const conversionStatusText = document.getElementById('conversionStatusText');
 
     const activeDocTitle = document.getElementById('activeDocTitle');
     const activeFormatBadge = document.getElementById('activeFormatBadge');
@@ -462,6 +432,17 @@
       fileInput.value = '';
     }
 
+    function setStatus(text) {
+      if (text) {
+        conversionStatusBox.classList.remove('hidden');
+        conversionStatusText.innerText = text;
+        contentPreview.classList.add('hidden');
+      } else {
+        conversionStatusBox.classList.add('hidden');
+        contentPreview.classList.remove('hidden');
+      }
+    }
+
     // MAIN CLIENT-SIDE CONVERSION DISPATCHER
     async function processFile(file) {
       const ext = '.' + file.name.split('.').pop().toLowerCase();
@@ -476,25 +457,26 @@
       activeFormatBadge.innerText = ext.replace('.', '').toUpperCase();
       mobileFormatBadge.innerText = ext.replace('.', '').toUpperCase();
 
-      contentPreview.innerHTML = '<div class="py-12 text-center text-zinc-400 font-mono text-sm flex items-center justify-center space-x-2"><i data-lucide="loader-2" class="w-5 h-5 animate-spin text-sky-400"></i><span>Parsing document in browser...</span></div>';
-      lucide.createIcons();
+      setStatus(`Loading ${file.name}...`);
 
       try {
         let md = '';
         if (ext === '.docx') {
+          setStatus('Converting Word document...');
           md = await parseDocx(file);
         } else if (ext === '.pdf') {
           md = await parsePdf(file);
         } else if (ext === '.xlsx' || ext === '.xls' || ext === '.csv') {
+          setStatus('Parsing spreadsheet tables...');
           md = await parseSpreadsheet(file, ext);
         } else if (ext === '.html' || ext === '.htm') {
+          setStatus('Converting HTML...');
           const text = await file.text();
-          md = turndownService.turndown(text);
+          md = turndownService ? turndownService.turndown(text) : text;
         } else if (ext === '.json') {
           const text = await file.text();
           try {
-            const formatted = JSON.stringify(JSON.parse(text), null, 2);
-            md = '```json\n' + formatted + '\n```';
+            md = '```json\n' + JSON.stringify(JSON.parse(text), null, 2) + '\n```';
           } catch {
             md = '```json\n' + text + '\n```';
           }
@@ -512,12 +494,17 @@
         metricTokens.innerText = tokens.toLocaleString();
         metricTime.innerText = elapsed + 's';
 
+        setStatus(null);
         renderContent();
         triggerToast('Conversion complete!');
       } catch (err) {
-        activeMarkdown = `# Parsing Error\n\nCould not parse \`${file.name}\`: ${err.message}`;
+        console.error('Conversion error:', err);
+        activeMarkdown = `# Parsing Error\n\nCould not parse \`${file.name}\`: ${err.message}\n\n*If this PDF has protected DRM or contains only scanned photos without OCR, please export it as text first.*`;
+        setStatus(null);
         renderContent();
         triggerToast('Error: ' + err.message);
+      } finally {
+        fileInput.value = '';
       }
     }
 
@@ -525,34 +512,65 @@
     async function parseDocx(file) {
       const arrayBuffer = await file.arrayBuffer();
       const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
-      return turndownService.turndown(result.value);
+      return turndownService ? turndownService.turndown(result.value) : result.value;
     }
 
-    // 2. PDF Parser via PDF.js
+    // 2. Robust PDF Parser via Same-Origin PDF.js with real-time page progress
     async function parsePdf(file) {
+      setStatus('Reading PDF binary...');
       const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let fullText = `# ${file.name}\n\n`;
+      
+      setStatus('Initializing PDF engine...');
+      const loadingTask = pdfjsLib.getDocument({
+        data: arrayBuffer,
+        cMapPacked: true
+      });
 
-      for (let i = 1; i <= pdf.numPages; i++) {
+      const pdf = await loadingTask.promise;
+      const numPages = pdf.numPages;
+
+      if (numPages === 0) {
+        return `# ${file.name}\n\n*Document contains 0 pages.*`;
+      }
+
+      let fullText = `# ${file.name}\n\n`;
+      let totalExtractedWords = 0;
+
+      for (let i = 1; i <= numPages; i++) {
+        setStatus(`Extracting Page ${i} of ${numPages}...`);
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
         
-        let lastY, pageText = '';
-        for (const item of textContent.items) {
-          if (lastY !== undefined && Math.abs(item.transform[5] - lastY) > 5) {
-            pageText += '\n';
+        let lastY = null;
+        let pageText = '';
+        
+        if (!textContent.items || textContent.items.length === 0) {
+          pageText = '*(No extractable text on this page)*';
+        } else {
+          for (const item of textContent.items) {
+            if (!item || !item.str) continue;
+            if (lastY !== null && Math.abs(item.transform[5] - lastY) > 5) {
+              pageText += '\n';
+            }
+            pageText += item.str + (item.hasEOL ? '\n' : ' ');
+            lastY = item.transform[5];
           }
-          pageText += item.str + ' ';
-          lastY = item.transform[5];
         }
 
-        if (pdf.numPages > 1) {
-          fullText += `## Page ${i}\n\n${pageText.trim()}\n\n`;
+        const cleanPage = pageText.trim();
+        totalExtractedWords += cleanPage.split(/\s+/).filter(Boolean).length;
+
+        if (numPages > 1) {
+          fullText += `## Page ${i}\n\n${cleanPage}\n\n`;
         } else {
-          fullText += `${pageText.trim()}\n\n`;
+          fullText += `${cleanPage}\n\n`;
         }
       }
+
+      if (totalExtractedWords < 5) {
+        fullText += `\n\n> **Notice:** Very little or no text was detected in this PDF. If this is a scanned document (images of pages rather than digital text), an OCR engine is required to recognize the characters.`;
+      }
+
       return fullText;
     }
 
@@ -565,16 +583,14 @@
       workbook.SheetNames.forEach((sheetName) => {
         const worksheet = workbook.Sheets[sheetName];
         const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-        if (rows.length === 0) return;
+        if (!rows || rows.length === 0) return;
 
         md += `## ${sheetName}\n\n`;
         
-        // Header row
         const headers = rows[0].map(h => (h !== undefined && h !== null) ? String(h).trim() : '');
         md += '| ' + headers.join(' | ') + ' |\n';
         md += '| ' + headers.map(() => '---').join(' | ') + ' |\n';
 
-        // Data rows
         for (let r = 1; r < rows.length; r++) {
           const row = rows[r];
           const cells = headers.map((_, colIdx) => {
@@ -590,13 +606,9 @@
     }
 
     function renderContent() {
-      const sanitized = DOMPurify.sanitize(marked.parse(activeMarkdown));
-      contentPreview.innerHTML = sanitized;
+      const html = DOMPurify.sanitize(marked.parse(activeMarkdown));
+      contentPreview.innerHTML = html;
       rawPreContent.innerText = activeMarkdown;
-      document.querySelectorAll('pre code').forEach((el) => {
-        hljs.highlightElement(el);
-      });
-      lucide.createIcons();
     }
 
     function setViewMode(mode) {
@@ -666,6 +678,8 @@
       setTimeout(() => {
         toast.classList.add('-translate-y-12', 'opacity-0');
       }, 3000);
+    }
+
     // Register Service Worker for PWA
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {

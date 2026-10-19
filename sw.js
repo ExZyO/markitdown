@@ -1,8 +1,15 @@
-const CACHE_NAME = 'markitdown-gh-v1';
+const CACHE_NAME = 'markitdown-gh-v2';
 const ASSETS_TO_CACHE = [
   './',
   'index.html',
   'manifest.json',
+  'pdf.min.js',
+  'pdf.worker.min.js',
+  'mammoth.browser.min.js',
+  'xlsx.full.min.js',
+  'turndown.js',
+  'marked.min.js',
+  'purify.min.js',
   'icons/icon.svg',
   'icons/icon-192.png',
   'icons/icon-512.png'
