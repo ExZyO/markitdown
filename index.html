@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>MarkItDown Studio</title>
+  <meta name="description" content="Universal document to Markdown studio running 100% in your browser.">
+  <meta name="theme-color" content="#09090b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            obsidian: '#09090b',
+            surface: '#111114',
+            panel: '#16161a',
+            subtle: 'rgba(255, 255, 255, 0.08)',
+            accent: '#38bdf8'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Client-Side Document Parsing Engines -->
+  <!-- 1. PDF.js for PDF extraction -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
+
+  <!-- 2. Mammoth.js for Word (.docx) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
+  <!-- 3. SheetJS for Excel (.xlsx, .xls, .csv) -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- 4. Turndown.js for HTML to Markdown conversion -->
+  <script src="https://unpkg.com/turndown/dist/turndown.js"></script>
+  <script src="https://unpkg.com/turndown-plugin-gfm/dist/turndown-plugin-gfm.js"></script>
+
+  <!-- 5. Marked.js, DOMPurify, Highlight.js for rendering -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.11/purify.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 9999px; }
+
+    /* Markdown Document Typography */
+    .prose-studio h1 {
+      font-size: 1.65rem;
+      font-weight: 800;
+      color: #ffffff;
+      margin-top: 1.5rem;
+      margin-bottom: 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 0.5rem;
+      letter-spacing: -0.025em;
+    }
+    @media (min-width: 640px) {
+      .prose-studio h1 { font-size: 2.25rem; }
+    }
+    .prose-studio h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #f4f4f5;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.02em;
+    }
+    .prose-studio h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: #e4e4e7;
+      margin-top: 1.25rem;
+      margin-bottom: 0.4rem;
+    }
+    .prose-studio p {
+      color: #d4d4d8;
+      font-size: 0.95rem;
+      line-height: 1.75;
+      margin-bottom: 1rem;
+    }
+    .prose-studio ul, .prose-studio ol {
+      margin-bottom: 1rem;
+      padding-left: 1.5rem;
+      color: #d4d4d8;
+      font-size: 0.95rem;
+      line-height: 1.75;
+    }
+    .prose-studio li { margin-bottom: 0.35rem; }
+    .prose-studio code {
+      font-family: 'JetBrains Mono', monospace;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 0.15rem 0.35rem;
+      border-radius: 0.375rem;
+      color: #38bdf8;
+      font-size: 0.88em;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .prose-studio pre {
+      background: #111114;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      overflow-x: auto;
+      margin: 1.25rem 0;
+    }
+    .prose-studio pre code {
+      background: transparent;
+      padding: 0;
+      border: none;
+      color: #f4f4f5;
+      font-size: 0.85rem;
+      line-height: 1.65;
+    }
+    .prose-studio table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 1.5rem 0;
+      font-size: 0.85rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 0.5rem;
+      overflow-x: auto;
+      display: block;
+    }
+    .prose-studio th {
+      background: #18181b;
+      padding: 0.65rem 0.85rem;
+      text-align: left;
+      font-weight: 600;
+      color: #ffffff;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .prose-studio td {
+      padding: 0.65rem 0.85rem;
+      color: #d4d4d8;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .prose-studio tr:last-child td { border-bottom: none; }
+    .prose-studio tr:nth-child(even) { background: rgba(255, 255, 255, 0.02); }
+    .prose-studio hr { border-color: rgba(255, 255, 255, 0.1); margin: 2rem 0; }
+    .prose-studio a { color: #38bdf8; text-decoration: underline; text-underline-offset: 3px; }
+  </style>
+</head>
+<body class="bg-obsidian text-zinc-100 h-[100dvh] flex flex-col font-sans antialiased selection:bg-sky-500/30 selection:text-sky-200 overflow-hidden">
+
+  <!-- Desktop Full-Window Drag & Drop Overlay -->
+  <div id="fullWindowDropOverlay" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-2xl border-4 border-dashed border-sky-400 m-4 sm:m-8 rounded-3xl flex flex-col items-center justify-center space-y-4 pointer-events-none transition-all">
+    <div class="w-16 h-16 sm:w-24 sm:h-24 rounded-3xl bg-sky-500/10 border border-sky-500/30 text-sky-400 flex items-center justify-center shadow-2xl shadow-sky-500/20">
+      <i data-lucide="upload-cloud" class="w-8 h-8 sm:w-12 sm:h-12"></i>
+    </div>
+    <div class="text-center px-4">
+      <h2 class="text-xl sm:text-3xl font-extrabold text-white tracking-tight">Drop your files here</h2>
+      <p class="text-xs sm:text-base text-zinc-400 mt-1">Instant conversion in your browser</p>
+    </div>
+  </div>
+
+  <!-- Adaptive Navigation Bar -->
+  <header class="w-full border-b border-subtle bg-obsidian/95 backdrop-blur-xl shrink-0 h-14 sm:h-16 px-4 sm:px-8 flex items-center justify-between z-30">
+    <div class="flex items-center space-x-3">
+      <div class="flex items-center space-x-2.5 cursor-pointer" onclick="resetToHome()">
+        <div class="w-8 h-8 rounded-xl bg-white text-black font-extrabold flex items-center justify-center text-sm shadow-md shrink-0">
+          M
+        </div>
+        <div class="flex items-center space-x-2">
+          <span class="font-bold text-base sm:text-lg tracking-tight text-white">MarkItDown</span>
+          <span class="text-[10px] sm:text-xs font-mono px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-300 border border-subtle hidden sm:inline-block">Studio</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Controls -->
+    <div class="flex items-center space-x-2">
+      <span class="text-[11px] font-mono px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center space-x-1.5">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>Client-Side Engine</span>
+      </span>
+      <button onclick="document.getElementById('fileInput').click()" class="h-9 px-3.5 rounded-xl bg-white text-black text-xs font-bold transition flex items-center space-x-1.5 shadow">
+        <i data-lucide="plus" class="w-4 h-4"></i>
+        <span>Upload</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Hidden Native File Input -->
+  <input type="file" id="fileInput" multiple class="hidden" accept=".pdf,.docx,.doc,.xlsx,.xls,.csv,.json,.html,.htm,.txt,.md,.xml">
+
+
+  <!-- ================= STATE 1: HERO HOME VIEW ================= -->
+  <div id="heroDropContainer" class="flex-1 flex flex-col p-4 sm:p-8 lg:p-12 overflow-y-auto">
+    
+    <!-- DESKTOP EXPANSIVE DROPZONE -->
+    <div class="hidden md:flex flex-1 w-full border-2 border-dashed border-zinc-800 hover:border-sky-500/80 bg-surface/40 hover:bg-surface/80 rounded-3xl p-12 transition-all duration-300 cursor-pointer shadow-2xl flex-col items-center justify-center text-center space-y-5 group" onclick="document.getElementById('fileInput').click()">
+      <div class="w-20 h-20 rounded-3xl bg-zinc-900 group-hover:bg-sky-500/10 group-hover:text-sky-400 text-zinc-400 flex items-center justify-center transition-all duration-300 border border-subtle shadow-inner">
+        <i data-lucide="upload-cloud" class="w-10 h-10"></i>
+      </div>
+
+      <div class="space-y-2 max-w-xl px-2">
+        <h1 class="text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight">
+          Convert any document to Markdown
+        </h1>
+        <p class="text-base text-zinc-400 font-normal leading-relaxed">
+          Runs 100% locally in your browser. PDF, Word, Excel, CSV, HTML, and Text.
+        </p>
+      </div>
+
+      <div class="pt-2 px-4">
+        <button class="h-14 px-10 py-3.5 rounded-2xl bg-white hover:bg-zinc-200 text-black font-bold text-base transition shadow-2xl flex items-center justify-center space-x-2.5 mx-auto">
+          <i data-lucide="plus" class="w-5 h-5"></i>
+          <span>Choose Files From Device</span>
+        </button>
+      </div>
+
+      <div class="pt-4 flex flex-wrap items-center justify-center gap-2 max-w-xl text-xs font-mono text-zinc-400 px-2">
+        <span class="px-2.5 py-1 rounded-lg bg-zinc-900 border border-subtle">PDF</span>
+        <span class="px-2.5 py-1 rounded-lg bg-zinc-900 border border-subtle">DOCX</span>
+        <span class="px-2.5 py-1 rounded-lg bg-zinc-900 border border-subtle">XLSX</span>
+        <span class="px-2.5 py-1 rounded-lg bg-zinc-900 border border-subtle">CSV</span>
+        <span class="px-2.5 py-1 rounded-lg bg-zinc-900 border border-subtle">HTML</span>
+        <span class="px-2.5 py-1 rounded-lg bg-zinc-900 border border-subtle">TXT</span>
+      </div>
+    </div>
+
+    <!-- MOBILE NATIVE SCREEN (Galaxy S24 Ultra & Phones) -->
+    <div class="md:hidden flex-1 flex flex-col justify-between py-2 space-y-6">
+      <div class="space-y-1">
+        <h1 class="text-2xl font-black text-white tracking-tight">Convert to Markdown</h1>
+        <p class="text-xs text-zinc-400">100% offline & client-side on your Galaxy S24 Ultra.</p>
+      </div>
+
+      <!-- Action Card -->
+      <div onclick="document.getElementById('fileInput').click()" class="bg-surface border border-zinc-800 hover:border-zinc-700 active:bg-zinc-900 rounded-3xl p-6 shadow-xl transition cursor-pointer flex items-center space-x-4">
+        <div class="w-14 h-14 rounded-2xl bg-sky-500/10 text-sky-400 flex items-center justify-center shrink-0 border border-sky-500/20">
+          <i data-lucide="file-up" class="w-7 h-7"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <h3 class="text-base font-bold text-white">Choose Document</h3>
+          <p class="text-xs text-zinc-400 truncate mt-0.5">PDF, Word (.docx), Excel (.xlsx), CSV, Text</p>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-zinc-900 border border-subtle flex items-center justify-center text-zinc-400 shrink-0">
+          <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </div>
+      </div>
+
+      <!-- Format Chips -->
+      <div class="space-y-2 pt-2">
+        <div class="text-[11px] font-mono text-zinc-500 uppercase tracking-wider font-semibold">Supported Formats</div>
+        <div class="grid grid-cols-3 gap-2 text-center text-xs font-mono font-medium">
+          <span class="py-2.5 rounded-xl bg-zinc-900/80 border border-subtle text-zinc-300">PDF</span>
+          <span class="py-2.5 rounded-xl bg-zinc-900/80 border border-subtle text-zinc-300">DOCX</span>
+          <span class="py-2.5 rounded-xl bg-zinc-900/80 border border-subtle text-zinc-300">XLSX</span>
+          <span class="py-2.5 rounded-xl bg-zinc-900/80 border border-subtle text-zinc-300">CSV</span>
+          <span class="py-2.5 rounded-xl bg-zinc-900/80 border border-subtle text-zinc-300">HTML</span>
+          <span class="py-2.5 rounded-xl bg-zinc-900/80 border border-subtle text-zinc-300">TEXT</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- ================= STATE 2: STUDIO WORKSPACE ================= -->
+  <div id="studioWorkspace" class="hidden flex-1 flex w-full h-[calc(100dvh-56px)] sm:h-[calc(100vh-64px)] overflow-hidden relative">
+    
+    <section class="flex-1 flex flex-col h-full overflow-hidden bg-obsidian w-full">
+      
+      <!-- MOBILE STUDIO TOP BAR (md:hidden) -->
+      <div class="md:hidden px-3.5 py-2.5 border-b border-subtle bg-surface/95 backdrop-blur-md flex items-center justify-between shrink-0 z-20">
+        <button onclick="resetToHome()" class="h-8 px-2.5 rounded-lg bg-zinc-900 border border-subtle text-xs text-zinc-300 active:text-white flex items-center space-x-1 shrink-0">
+          <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+          <span>New</span>
+        </button>
+
+        <div class="flex items-center space-x-2 truncate px-2 min-w-0">
+          <span id="mobileFormatBadge" class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 shrink-0">DOC</span>
+          <span id="mobileDocTitle" class="text-xs font-bold text-white truncate">document.docx</span>
+        </div>
+
+        <div class="bg-zinc-950 p-0.5 rounded-lg border border-subtle flex items-center">
+          <button id="mobileViewBtnPreview" onclick="setViewMode('preview')" class="h-7 px-2.5 rounded-md text-[11px] font-semibold bg-white text-black transition">
+            Preview
+          </button>
+          <button id="mobileViewBtnRaw" onclick="setViewMode('raw')" class="h-7 px-2.5 rounded-md text-[11px] font-medium text-zinc-400 transition">
+            .md
+          </button>
+        </div>
+      </div>
+
+      <!-- DESKTOP TOP ACTION BAR (hidden md:flex) -->
+      <div class="hidden md:flex min-h-16 px-8 border-b border-subtle bg-obsidian/95 backdrop-blur-md items-center justify-between shrink-0 gap-2 py-2">
+        <div class="flex items-center space-x-2.5 truncate max-w-md">
+          <span id="activeFormatBadge" class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 shrink-0">DOC</span>
+          <div class="truncate">
+            <h2 id="activeDocTitle" class="text-base font-bold text-white truncate">document.docx</h2>
+            <div class="flex items-center space-x-2 text-xs font-mono text-zinc-400">
+              <span>Words: <strong id="metricWords" class="text-white">0</strong></span>
+              <span>•</span>
+              <span>Tokens: <strong id="metricTokens" class="text-sky-400">0</strong></span>
+              <span>•</span>
+              <span id="metricTime" class="text-emerald-400">0.0s</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-2 shrink-0">
+          <div class="bg-zinc-950 p-1 rounded-xl border border-subtle flex items-center space-x-0.5">
+            <button id="viewBtnPreview" onclick="setViewMode('preview')" class="h-8 px-3 rounded-lg text-xs font-semibold bg-white text-black transition shadow-sm">
+              Preview
+            </button>
+            <button id="viewBtnRaw" onclick="setViewMode('raw')" class="h-8 px-3 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition">
+              Raw .md
+            </button>
+          </div>
+
+          <button id="desktopCopyBtn" onclick="copyActiveMarkdown()" class="h-9 px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white font-semibold text-xs border border-subtle transition flex items-center space-x-1.5">
+            <i data-lucide="copy" class="w-3.5 h-3.5 text-sky-400"></i>
+            <span id="desktopCopyText">Copy</span>
+          </button>
+
+          <button onclick="downloadActiveMarkdown()" class="h-9 px-4 rounded-xl bg-white hover:bg-zinc-200 text-black font-bold text-xs transition flex items-center space-x-1.5 shadow-md">
+            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+            <span>Export</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- MAIN DOCUMENT VIEWPORT -->
+      <div id="documentViewport" class="flex-1 overflow-y-auto p-4 sm:p-8 lg:p-12 pb-28 sm:pb-16 w-full">
+        <!-- View 1: Rendered HTML -->
+        <div id="contentPreview" class="prose-studio w-full max-w-5xl mx-auto"></div>
+
+        <!-- View 2: Raw Monospace -->
+        <div id="contentRaw" class="hidden w-full max-w-5xl mx-auto">
+          <pre id="rawPreContent" class="font-mono text-xs sm:text-sm text-zinc-200 bg-[#0e0e12] p-4 sm:p-8 rounded-2xl border border-subtle overflow-x-auto whitespace-pre-wrap break-words leading-relaxed select-text shadow-xl"></pre>
+        </div>
+      </div>
+
+      <!-- MOBILE BOTTOM DOCK (Galaxy S24 Ultra) -->
+      <div class="md:hidden fixed bottom-0 left-0 right-0 z-30 p-3 bg-obsidian/95 backdrop-blur-2xl border-t border-subtle pb-[max(12px,env(safe-area-inset-bottom))]">
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="copyActiveMarkdown()" class="h-12 rounded-2xl bg-zinc-900 border border-subtle text-white font-semibold text-xs flex flex-col items-center justify-center space-y-0.5 active:bg-zinc-800">
+            <i data-lucide="copy" class="w-4 h-4 text-sky-400"></i>
+            <span id="mobileDockCopyText">Copy</span>
+          </button>
+          <button onclick="shareActiveMarkdown()" class="h-12 rounded-2xl bg-zinc-900 border border-subtle text-white font-semibold text-xs flex flex-col items-center justify-center space-y-0.5 active:bg-zinc-800">
+            <i data-lucide="share-2" class="w-4 h-4 text-indigo-400"></i>
+            <span>Share</span>
+          </button>
+          <button onclick="downloadActiveMarkdown()" class="h-12 rounded-2xl bg-white text-black font-bold text-xs flex flex-col items-center justify-center space-y-0.5 active:bg-zinc-200 shadow-lg">
+            <i data-lucide="download" class="w-4 h-4"></i>
+            <span>Export .md</span>
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toastNotification" class="fixed top-5 left-1/2 -translate-x-1/2 z-50 transform -translate-y-12 opacity-0 transition-all duration-300 bg-zinc-900 border border-white/10 text-white px-5 py-2.5 rounded-2xl shadow-2xl flex items-center space-x-2 text-xs font-medium">
+    <i data-lucide="check" class="w-4 h-4 text-emerald-400"></i>
+    <span id="toastMessage">Done</span>
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // Turndown for HTML to Markdown
+    const turndownService = new TurndownService({
+      headingStyle: 'atx',
+      codeBlockStyle: 'fenced'
+    });
+    if (typeof turndownPluginGfm !== 'undefined') {
+      turndownService.use(turndownPluginGfm.gfm);
+    }
+
+    // App State
+    let activeMarkdown = '';
+    let activeFilename = '';
+    let activeViewMode = 'preview';
+
+    // DOM Elements
+    const heroDropContainer = document.getElementById('heroDropContainer');
+    const studioWorkspace = document.getElementById('studioWorkspace');
+    const fullWindowDropOverlay = document.getElementById('fullWindowDropOverlay');
+    const fileInput = document.getElementById('fileInput');
+
+    const activeDocTitle = document.getElementById('activeDocTitle');
+    const activeFormatBadge = document.getElementById('activeFormatBadge');
+    const metricWords = document.getElementById('metricWords');
+    const metricTokens = document.getElementById('metricTokens');
+    const metricTime = document.getElementById('metricTime');
+
+    const mobileDocTitle = document.getElementById('mobileDocTitle');
+    const mobileFormatBadge = document.getElementById('mobileFormatBadge');
+
+    const contentPreview = document.getElementById('contentPreview');
+    const contentRaw = document.getElementById('contentRaw');
+    const rawPreContent = document.getElementById('rawPreContent');
+
+    const viewBtnPreview = document.getElementById('viewBtnPreview');
+    const viewBtnRaw = document.getElementById('viewBtnRaw');
+    const mobileViewBtnPreview = document.getElementById('mobileViewBtnPreview');
+    const mobileViewBtnRaw = document.getElementById('mobileViewBtnRaw');
+
+    const desktopCopyText = document.getElementById('desktopCopyText');
+    const mobileDockCopy = document.getElementById('mobileDockCopyText');
+
+    // Drag and Drop
+    let dragCounter = 0;
+    window.addEventListener('dragenter', (e) => { e.preventDefault(); dragCounter++; fullWindowDropOverlay.classList.remove('hidden'); });
+    window.addEventListener('dragleave', (e) => { e.preventDefault(); dragCounter--; if (dragCounter <= 0) { fullWindowDropOverlay.classList.add('hidden'); dragCounter = 0; } });
+    window.addEventListener('dragover', (e) => e.preventDefault());
+    window.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dragCounter = 0;
+      fullWindowDropOverlay.classList.add('hidden');
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+        processFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files.length > 0) {
+        processFile(e.target.files[0]);
+      }
+    });
+
+    function resetToHome() {
+      activeMarkdown = '';
+      activeFilename = '';
+      studioWorkspace.classList.add('hidden');
+      heroDropContainer.classList.remove('hidden');
+      fileInput.value = '';
+    }
+
+    // MAIN CLIENT-SIDE CONVERSION DISPATCHER
+    async function processFile(file) {
+      const ext = '.' + file.name.split('.').pop().toLowerCase();
+      activeFilename = file.name;
+      const startTime = performance.now();
+
+      heroDropContainer.classList.add('hidden');
+      studioWorkspace.classList.remove('hidden');
+      
+      activeDocTitle.innerText = file.name;
+      mobileDocTitle.innerText = file.name;
+      activeFormatBadge.innerText = ext.replace('.', '').toUpperCase();
+      mobileFormatBadge.innerText = ext.replace('.', '').toUpperCase();
+
+      contentPreview.innerHTML = '<div class="py-12 text-center text-zinc-400 font-mono text-sm flex items-center justify-center space-x-2"><i data-lucide="loader-2" class="w-5 h-5 animate-spin text-sky-400"></i><span>Parsing document in browser...</span></div>';
+      lucide.createIcons();
+
+      try {
+        let md = '';
+        if (ext === '.docx') {
+          md = await parseDocx(file);
+        } else if (ext === '.pdf') {
+          md = await parsePdf(file);
+        } else if (ext === '.xlsx' || ext === '.xls' || ext === '.csv') {
+          md = await parseSpreadsheet(file, ext);
+        } else if (ext === '.html' || ext === '.htm') {
+          const text = await file.text();
+          md = turndownService.turndown(text);
+        } else if (ext === '.json') {
+          const text = await file.text();
+          try {
+            const formatted = JSON.stringify(JSON.parse(text), null, 2);
+            md = '```json\n' + formatted + '\n```';
+          } catch {
+            md = '```json\n' + text + '\n```';
+          }
+        } else {
+          // Plain text / Markdown / XML
+          md = await file.text();
+        }
+
+        activeMarkdown = md;
+        const elapsed = ((performance.now() - startTime) / 1000).toFixed(2);
+        const words = md.trim().split(/\s+/).filter(Boolean).length;
+        const tokens = Math.max(1, Math.round(words * 1.33));
+
+        metricWords.innerText = words.toLocaleString();
+        metricTokens.innerText = tokens.toLocaleString();
+        metricTime.innerText = elapsed + 's';
+
+        renderContent();
+        triggerToast('Conversion complete!');
+      } catch (err) {
+        activeMarkdown = `# Parsing Error\n\nCould not parse \`${file.name}\`: ${err.message}`;
+        renderContent();
+        triggerToast('Error: ' + err.message);
+      }
+    }
+
+    // 1. DOCX Parser via Mammoth
+    async function parseDocx(file) {
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
+      return turndownService.turndown(result.value);
+    }
+
+    // 2. PDF Parser via PDF.js
+    async function parsePdf(file) {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let fullText = `# ${file.name}\n\n`;
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        
+        let lastY, pageText = '';
+        for (const item of textContent.items) {
+          if (lastY !== undefined && Math.abs(item.transform[5] - lastY) > 5) {
+            pageText += '\n';
+          }
+          pageText += item.str + ' ';
+          lastY = item.transform[5];
+        }
+
+        if (pdf.numPages > 1) {
+          fullText += `## Page ${i}\n\n${pageText.trim()}\n\n`;
+        } else {
+          fullText += `${pageText.trim()}\n\n`;
+        }
+      }
+      return fullText;
+    }
+
+    // 3. Spreadsheet Parser via SheetJS
+    async function parseSpreadsheet(file, ext) {
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      let md = '';
+
+      workbook.SheetNames.forEach((sheetName) => {
+        const worksheet = workbook.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        if (rows.length === 0) return;
+
+        md += `## ${sheetName}\n\n`;
+        
+        // Header row
+        const headers = rows[0].map(h => (h !== undefined && h !== null) ? String(h).trim() : '');
+        md += '| ' + headers.join(' | ') + ' |\n';
+        md += '| ' + headers.map(() => '---').join(' | ') + ' |\n';
+
+        // Data rows
+        for (let r = 1; r < rows.length; r++) {
+          const row = rows[r];
+          const cells = headers.map((_, colIdx) => {
+            const val = row[colIdx];
+            return (val !== undefined && val !== null) ? String(val).replace(/\|/g, '\\|').trim() : '';
+          });
+          md += '| ' + cells.join(' | ') + ' |\n';
+        }
+        md += '\n';
+      });
+
+      return md;
+    }
+
+    function renderContent() {
+      const sanitized = DOMPurify.sanitize(marked.parse(activeMarkdown));
+      contentPreview.innerHTML = sanitized;
+      rawPreContent.innerText = activeMarkdown;
+      document.querySelectorAll('pre code').forEach((el) => {
+        hljs.highlightElement(el);
+      });
+      lucide.createIcons();
+    }
+
+    function setViewMode(mode) {
+      activeViewMode = mode;
+      viewBtnPreview.className = mode === 'preview' ? 'h-8 px-3 rounded-lg text-xs font-semibold bg-white text-black transition shadow-sm' : 'h-8 px-3 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition';
+      viewBtnRaw.className = mode === 'raw' ? 'h-8 px-3 rounded-lg text-xs font-semibold bg-white text-black transition shadow-sm' : 'h-8 px-3 rounded-lg text-xs font-medium text-zinc-400 hover:text-white transition';
+
+      mobileViewBtnPreview.className = mode === 'preview' ? 'h-7 px-2.5 rounded-md text-[11px] font-semibold bg-white text-black transition' : 'h-7 px-2.5 rounded-md text-[11px] font-medium text-zinc-400 transition';
+      mobileViewBtnRaw.className = mode === 'raw' ? 'h-7 px-2.5 rounded-md text-[11px] font-semibold bg-white text-black transition' : 'h-7 px-2.5 rounded-md text-[11px] font-medium text-zinc-400 transition';
+
+      if (mode === 'preview') {
+        contentPreview.classList.remove('hidden');
+        contentRaw.classList.add('hidden');
+      } else {
+        contentPreview.classList.add('hidden');
+        contentRaw.classList.remove('hidden');
+      }
+    }
+
+    function copyActiveMarkdown() {
+      if (!activeMarkdown) return;
+      navigator.clipboard.writeText(activeMarkdown).then(() => {
+        desktopCopyText.innerText = 'Copied!';
+        if (mobileDockCopy) mobileDockCopy.innerText = 'Copied!';
+        triggerToast('Copied to clipboard!');
+        setTimeout(() => {
+          desktopCopyText.innerText = 'Copy';
+          if (mobileDockCopy) mobileDockCopy.innerText = 'Copy';
+        }, 2000);
+      });
+    }
+
+    async function shareActiveMarkdown() {
+      if (!activeMarkdown) return;
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: activeFilename,
+            text: activeMarkdown
+          });
+          triggerToast('Shared successfully!');
+        } catch (err) {
+          if (err.name !== 'AbortError') copyActiveMarkdown();
+        }
+      } else {
+        copyActiveMarkdown();
+      }
+    }
+
+    function downloadActiveMarkdown() {
+      if (!activeMarkdown) return;
+      const base = activeFilename.replace(/\.[^/.]+$/, "") || "document";
+      const blob = new Blob([activeMarkdown], { type: 'text/markdown;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${base}.md`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function triggerToast(msg) {
+      const toast = document.getElementById('toastNotification');
+      const toastMessage = document.getElementById('toastMessage');
+      toastMessage.innerText = msg;
+      toast.classList.remove('-translate-y-12', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('-translate-y-12', 'opacity-0');
+      }, 3000);
+    // Register Service Worker for PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch((err) => console.log('SW error:', err));
+      });
+    }
+  </script>
+</body>
+</html>

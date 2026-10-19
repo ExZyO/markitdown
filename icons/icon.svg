@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="50%" stop-color="#1E1B4B" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="50%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#A855F7" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background rounded rect -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" stroke="#38BDF8" stroke-width="4" stroke-opacity="0.3"/>
+
+  <!-- Glowing background effect -->
+  <circle cx="256" cy="256" r="160" fill="url(#primaryGrad)" opacity="0.18" filter="url(#glow)"/>
+
+  <!-- Document Silhouette -->
+  <path d="M140 100 C140 86, 151 76, 165 76 L290 76 L372 158 L372 412 C372 426, 361 436, 347 436 L165 436 C151 436, 140 426, 140 412 Z" fill="#1E293B" stroke="url(#primaryGrad)" stroke-width="6"/>
+
+  <!-- Folded Corner -->
+  <path d="M290 76 L290 158 L372 158 Z" fill="#334155" stroke="url(#primaryGrad)" stroke-width="4"/>
+
+  <!-- Markdown 'M' Logo in Center -->
+  <g transform="translate(180, 210)" fill="none" stroke="url(#primaryGrad)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round">
+    <!-- M shape -->
+    <path d="M 0 100 L 0 0 L 45 45 L 90 0 L 90 100" />
+    <!-- Down Arrow for Conversion -->
+    <path d="M 135 25 L 135 95 M 115 75 L 135 95 L 155 75" />
+  </g>
+</svg>
